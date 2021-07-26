@@ -1,4 +1,4 @@
-# Unsupervised Musical Source Separation
+# Unsupervised Audio Source Separation Using Differentiable Parametric Source Models
 
 We are working on releasing the Python source code, but choose not to make it publicly available while the paper is under review.
 
