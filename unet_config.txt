@@ -1,0 +1,47 @@
+# ----- GENERAL PARAMETERS ---------------------------
+
+tag: unet
+comment: ...
+architecture: BaselineUnet
+
+# wst-model
+# output
+
+
+# -------- DATASET PARAMETERS -----------------------
+
+dataset = BCBQ
+one-song = True
+one-example = False
+one-batch = False
+
+samplerate = 16000
+example-length = 64000
+
+f0-cuesta = True
+
+voices = satb  # satb
+
+
+# -------- TRAINING PARAMETERS -----------------------
+
+epochs = 8000
+batch-size = 16
+lr = 0.001
+patience = 200
+lr-decay-patience = 80
+lr-decay-gamma = 0.98
+weight-decay = 0.00001
+seed = 4
+nb-workers = 8
+quiet = False
+no-cuda = False
+
+supervised = True
+
+# -------- MODEL PARAMETERS ------------------------
+
+original-cu-net = True
+nfft = 1024
+nhop = 256
+n-sources = 4  # this parameter also determines the number of sources drawn from 'voices' in CSD dataset

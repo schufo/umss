@@ -1,0 +1,70 @@
+# ----- GENERAL PARAMETERS ---------------------------
+
+tag: test
+comment: ...
+architecture: SourceFilterMixtureAutoencoder2
+
+
+
+# -------- DATASET PARAMETERS -----------------------
+
+dataset = BCBQ
+one-song = False
+one-example = False
+one-batch = False
+
+samplerate = 16000
+example-length = 64000
+
+f0-cuesta = True
+
+voices = satb  # satb
+
+# -------- TRAINING PARAMETERS -----------------------
+
+epochs = 8000
+batch-size = 16
+lr = 0.0001
+patience = 200
+lr-decay-patience = 80
+lr-decay-gamma = 0.98
+weight-decay = 0.00001
+seed = 4
+nb-workers = 10
+quiet = False
+no-cuda = False
+
+supervised = False
+reconstruction-loss-weight = 1
+loss-nfft = [2048, 1024, 512, 256, 128, 64]
+loss-mag-weight = 1
+loss-logmag-weight = 1
+loss-logmel-weight = 0
+loss-delta-freq-weight = 0
+loss-delta-time-weight = 0
+loss-lsf-weight = 0  # LSF regularization loss
+
+
+# -------- MODEL PARAMETERS ------------------------
+
+nfft = 512
+nhop = 256
+filter-order = 20             # for vocal tract filter in source filter model
+noise-filter-mags = 40        # for noise filter in source filter model
+# nb-filter-magnitudes = 65   # for noise filter in harmonics plus noise model
+
+encoder = MixEncoderSimple
+n-sources = 3  # this parameter also determines the number of sources drawn from 'voices' in CSD dataset
+
+encoder-hidden-size = 256
+embedding-size = 128
+decoder-hidden-size = 512
+decoder-output-size = 512
+unidirectional = True
+
+estimate-lsf = True
+voiced-unvoiced-same-noise = True
+
+harmonic-roll-off = 6  # estimated by model if set to -1 (time-varying) or to -2 (time-invariant)
+estimate-noise-mags = True  # estimate constant noise shape for voiced frames
+f-ref-source-spec = 200
