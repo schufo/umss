@@ -6,7 +6,7 @@ It contains a re-implementation of parts of the DDSP library in PyTorch. We adde
 
 Please cite the paper, if you use parts of the code in your work.
 
-##Links
+## Links
 [:loud_sound: Audio examples](https://schufo.github.io/umss/)
 
 [:page_facing_up: Paper](https://arxiv.org/abs/2201.09592)
