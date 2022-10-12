@@ -1,0 +1,90 @@
+# ----- GENERAL PARAMETERS ---------------------------
+
+tag: unsupervised_4s_satb_bcbq_mf0_1_again
+comment: 4 sources on BCBQ datasets, unsupervised.
+architecture: SourceFilterMixtureAutoencoder2
+
+# wst-model = selfsupervised_2sources_5
+# output
+
+
+# -------- DATASET PARAMETERS -----------------------
+
+dataset = BCBQ
+one-example = False
+one-batch = False
+# parallel = True
+# confidence-threshold = 0.4
+samplerate = 16000
+example-length = 64000
+# crepe-hop-size = 256
+# crepe-center = True
+f0-cuesta = True
+
+voices = satb  # satb
+# pre-emphasis-factor = 0.95
+# split = train        # if dataset = nus
+# source2-offset: 0.8  # if dataset = nus_mix
+# train-song = Nino Dios
+# val-song = Locus Iste
+
+# -------- TRAINING PARAMETERS -----------------------
+
+epochs = 8000
+batch-size = 15
+lr = 0.0001
+patience = 200
+lr-decay-patience = 80
+lr-decay-gamma = 0.98
+weight-decay = 0.00001
+seed = 4
+nb-workers = 10
+quiet = False
+no-cuda = False
+
+supervised = False
+reconstruction-loss-weight = 1
+loss-nfft = [2048, 1024, 512, 256, 128, 64]
+loss-mag-weight = 1
+loss-logmag-weight = 1
+loss-logmel-weight = 0
+loss-delta-freq-weight = 0
+loss-delta-time-weight = 0
+loss-lsf-weight = 0  # LSF regularization loss
+
+ss-loss-weight = 0
+harmonic-amp-loss-weight = 1
+f0-hz-loss-weight = 0
+harmonics-roll-off-loss-weight = 0
+lsf-loss-weight = 10  # self supervision loss
+noise-gain-loss-weight = 100
+noise-mags-loss-weight = 1
+
+
+# -------- MODEL PARAMETERS ------------------------
+
+nfft = 512
+nhop = 256
+filter-order = 20             # for vocal tract filter in source filter model
+noise-filter-mags = 40        # for noise filter in source filter model
+# nb-filter-magnitudes = 65   # for noise filter in harmonics plus noise model
+
+encoder = MixEncoderSimple
+n-sources = 4  # this parameter also determines the number of sources drawn from 'voices' in CSD dataset
+
+encoder-hidden-size = 256
+embedding-size = 128
+decoder-hidden-size = 512
+decoder-output-size = 512
+unidirectional = True
+
+estimate-lsf = True
+voiced-unvoiced-same-noise = True
+
+harmonic-roll-off = 6  # estimated by model if set to -1 (time-varying) or to -2 (time-invariant)
+estimate-noise-mags = True  # estimate constant noise shape for voiced frames
+# estimate-f0 = False
+# supervised-f0 = False
+# switch-off-noise = False
+f-ref-source-spec = 200
+# source-spectrum = flat
