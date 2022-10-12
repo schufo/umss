@@ -17,7 +17,7 @@ import csv
 import itertools
 
 import utils
-import ddsp.core, ddsp.synthetic_data
+import ddsp.core
 
 
 def load_datasets(parser, args):
