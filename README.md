@@ -11,25 +11,26 @@ Please cite the paper, if you use parts of the code in your work.
 
 [:page_facing_up: Paper](https://arxiv.org/abs/2201.09592)
 
+[:file_folder: CSD Database](https://zenodo.org/record/1286570#.Y0ZsbNJByUk)
 
 ## Requirements
 
-The following packages are required:
+The following conda packages are required:
 
-    pytorch==1.6.0
-    matplotlib==3.3.1
-    python-sounddevice==0.4.0
-    scipy==1.5.2
+    pytorch=1.6.0
+    matplotlib=3.3.1
+    python-sounddevice=0.4.0
+    scipy=1.5.2
     torchaudio=0.6.0
-    tqdm==4.49.0
-    pysoundfile==0.10.3
-    librosa==0.8.0
-    scikit-learn==0.23.2
-    tensorboard==2.3.0
-    resampy==0.2.2
+    tqdm=4.49.0
+    pysoundfile=0.10.3
+    librosa=0.8.0
+    scikit-learn=0.23.2
+    tensorboard=2.3.0
+    resampy=0.2.2
     pandas==1.2.3
-    tensorboard==2.3.0
-    
+
+These packages can be found using the conda-forge and pytorch channels. 
     
 ## Training
 
@@ -40,6 +41,8 @@ The following packages are required:
 ## Evaluation
 
     python eval.py --tag 'TAG' --f0-from-mix --test-set 'CSD'
+
+Note : 'TAG' is the evaluated model's name.
     
 ## Acknowledgment
 
