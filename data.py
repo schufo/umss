@@ -220,6 +220,10 @@ class CSD(torch.utils.data.Dataset):
         elif song_name == 'Locus Iste': self.total_audio_length = 190; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
         elif song_name == 'Nino Dios': self.total_audio_length = 103; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
 
+        if song_name == 'El Rossinyol' : song_name = 'El_Rossinyol'
+        elif song_name == 'Locus Iste' : song_name = 'Locus_Iste'
+        elif song_name == 'Nino Dios' : song_name = 'Nino_Dios'
+
         self.audio_files = sorted(glob.glob('./Datasets/ChoralSingingDataset/{}/audio_16kHz/*.wav'.format(song_name)))
         self.crepe_dir = './Datasets/ChoralSingingDataset/{}/crepe_f0_center'.format(song_name)
 
