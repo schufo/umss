@@ -1,3 +1,4 @@
+from faulthandler import disable
 import os
 import pickle
 import json
@@ -14,6 +15,9 @@ import utils
 import evaluation_metrics as em
 import ddsp.spectral_ops
 
+from tqdm import tqdm
+
+show_progress = True
 
 torch.manual_seed(0)
 
@@ -87,7 +91,7 @@ for seed in range(n_seeds):
     rng_state_torch = torch.get_rng_state()
 
     #for d in data_loader:
-    for idx in range(len(test_set)):
+    for idx in tqdm( range(len(test_set)), disable = not show_progress):
 
         d = test_set[idx]
 
