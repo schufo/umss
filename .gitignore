@@ -102,7 +102,9 @@ Temporary Items
 .idea/
 
 # my directories
-#/trained_models/*
+/trained_models/*
+!/trained_models/unsupervised_2s_satb_bcbq_mf0_1/
+!/trained_models/unsupervised_4s_satb_bcbq_mf0_1_again/
 /tensorboard/*
 /documentation/
 /cluster_logs/*
