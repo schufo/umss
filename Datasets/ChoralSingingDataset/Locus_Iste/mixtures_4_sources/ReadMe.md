@@ -1,1 +1,1 @@
-DO: Add Cuesta-calculated f0 information of all permutations of 4 different voices with any of the 4 singers of the Locus_Iste song here (for a total of 256 permutations).
+Description: Cuesta-calculated f0 information of all permutations of 4 different voices with any of the 4 singers of the Locus_Iste song (for a total of 256 permutations).
