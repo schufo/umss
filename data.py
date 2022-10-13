@@ -220,10 +220,10 @@ class CSD(torch.utils.data.Dataset):
         elif song_name == 'Locus Iste': self.total_audio_length = 190; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
         elif song_name == 'Nino Dios': self.total_audio_length = 103; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
 
-        self.audio_files = sorted(glob.glob('../Datasets/ChoralSingingDataset/{}/audio_16kHz/*.wav'.format(song_name)))
-        self.crepe_dir = '../Datasets/ChoralSingingDataset/{}/crepe_f0_center'.format(song_name)
+        self.audio_files = sorted(glob.glob('./Datasets/ChoralSingingDataset/{}/audio_16kHz/*.wav'.format(song_name)))
+        self.crepe_dir = './Datasets/ChoralSingingDataset/{}/crepe_f0_center'.format(song_name)
 
-        f0_cuesta_dir = '../Datasets/ChoralSingingDataset/{}/mixtures_{}_sources/mf0_cuesta_processed/*.pt'.format(song_name, n_sources)
+        f0_cuesta_dir = './Datasets/ChoralSingingDataset/{}/mixtures_{}_sources/mf0_cuesta_processed/*.pt'.format(song_name, n_sources)
         self.f0_cuesta_files = sorted(list(glob.glob(f0_cuesta_dir)))
 
         if not random_mixes:
@@ -371,10 +371,10 @@ class BCBQDataSets(torch.utils.data.Dataset):
         self.voice_choices = [voices_dict[v] for v in allowed_voices]
         self.voice_ids = ['s', 'a', 't', 'b']
 
-        self.audio_files = sorted(glob.glob('../Datasets/{}/audio_16kHz/*.wav'.format(data_set)))
+        self.audio_files = sorted(glob.glob('./Datasets/{}/audio_16kHz/*.wav'.format(data_set)))
         # file 17_BC021_part11_s_1ch.wav is empty  --> exclude 17_BC021_part11
         self.audio_files = [f for f in self.audio_files if '17_BC021_part11' not in f]
-        self.crepe_dir = '../Datasets/{}/crepe_f0_center'.format(data_set)
+        self.crepe_dir = './Datasets/{}/crepe_f0_center'.format(data_set)
 
         if data_set == 'BC':
             if one_song:
@@ -391,7 +391,7 @@ class BCBQDataSets(torch.utils.data.Dataset):
                 if validation_subset: self.audio_files = self.audio_files[- (13+11)*4 :]  # only 8_BQ and 9_BQ
                 else: self.audio_files = self.audio_files[: - (13+11)*4]  # all except 8_BQ and 9_BQ
 
-        self.f0_cuesta_dir = '../Datasets/{}/mixtures_{}_sources/mf0_cuesta_processed'.format(data_set, n_sources)
+        self.f0_cuesta_dir = './Datasets/{}/mixtures_{}_sources/mf0_cuesta_processed'.format(data_set, n_sources)
 
         if not random_mixes:
             # number of non-overlapping excerpts
