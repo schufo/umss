@@ -102,7 +102,7 @@ Temporary Items
 .idea/
 
 # my directories
-/trained_models/*
+#/trained_models/*
 /tensorboard/*
 /documentation/
 /cluster_logs/*
