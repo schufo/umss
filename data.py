@@ -304,21 +304,21 @@ class CSD(torch.utils.data.Dataset):
 
             file_name = audio_file.split('/')[-1][:-4]
 
-            confidence_file = '{}/{}_confidence.npy'.format(self.crepe_dir, file_name)
-            confidence = np.load(confidence_file)[crepe_start_frame:crepe_end_frame]
-            f0_file = '{}/{}_frequency.npy'.format(self.crepe_dir, file_name)
-            frequency = np.load(f0_file)[crepe_start_frame:crepe_end_frame]
-            frequency = np.where(confidence < self.conf_threshold, 0, frequency)
+            # confidence_file = '{}/{}_confidence.npy'.format(self.crepe_dir, file_name)
+            # confidence = np.load(confidence_file)[crepe_start_frame:crepe_end_frame]
+            # f0_file = '{}/{}_frequency.npy'.format(self.crepe_dir, file_name)
+            # frequency = np.load(f0_file)[crepe_start_frame:crepe_end_frame]
+            # frequency = np.where(confidence < self.conf_threshold, 0, frequency)
 
-            frequency = torch.from_numpy(frequency).type(torch.float32)
-            f0_list.append(frequency)
+            # frequency = torch.from_numpy(frequency).type(torch.float32)
+            # f0_list.append(frequency)
 
             singer_id = '_' + voice[0].replace('C', 'A') + file_name[-6:]
             contained_singer_ids.append(singer_id)
             name += '{}'.format(singer_id)
 
-            if not self.plus_one_f0_frame and not self.cunet_original:
-                assert len(audio) / 256 == len(frequency), 'audio and frequency lengths are inconsistent'
+            # if not self.plus_one_f0_frame and not self.cunet_original:
+            #     assert len(audio) / 256 == len(frequency), 'audio and frequency lengths are inconsistent'
 
         sources = torch.stack(sources_list, dim=1)  # [n_samples, n_sources]
 
@@ -328,8 +328,8 @@ class CSD(torch.utils.data.Dataset):
             f0_from_mix_file = [file for file in self.f0_cuesta_files if any([ids in file for ids in permuted_mix_ids])][0]
             f0_estimates = torch.load(f0_from_mix_file)[crepe_start_frame:crepe_end_frame, :]
             frequencies = f0_estimates
-        else:
-            frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]
+        # else:
+        #     frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]
 
         name += '_{}'.format(np.round(audio_start_time, decimals=3))
 
