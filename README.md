@@ -13,6 +13,8 @@ Please cite the paper, if you use parts of the code in your work.
 
 [:file_folder: CSD Database](https://zenodo.org/record/1286570#.Y0ZsbNJByUk)
 
+[:microphone: Multiple-f0 estimation](https://github.com/helenacuesta/multif0-estimation-polyvocals)
+
 ## Requirements
 
 The following conda packages are required:
@@ -42,7 +44,7 @@ These packages can be found using the conda-forge and pytorch channels.
 
     python eval.py --tag 'TAG' --f0-from-mix --test-set 'CSD'
 
-Note : 'TAG' is the evaluated model's name.
+Note : 'TAG' is the evaluated model's name. (Example: unsupervised_2s_satb_bcbq_mf0_1)
     
 ## Acknowledgment
 
