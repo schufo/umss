@@ -19,24 +19,34 @@ from tqdm import tqdm
 
 torch.manual_seed(0)
 
+# Parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--tag', type=str)
 parser.add_argument('--test-set', type=str, default='El Rossinyol', choices=['CSD'])
 parser.add_argument('--f0-from-mix', action='store_true', default=True)
 parser.add_argument('--show-progress', action='store_true', default=False)
+parser.add_argument('--compute', type=str, default='all', choices=['all','fast'])
 args, _ = parser.parse_known_args()
-
 tag = args.tag
-is_u_net = tag[:4] == 'unet'
-if args.test_set == 'CSD': test_set_add_on = 'CSD'
-if args.f0_from_mix: f0_add_on = 'mf0'
-f0_cuesta = args.f0_from_mix
-
 parser.add_argument('--eval-tag', type=str, default=tag)
 args, _ = parser.parse_known_args()
 
+is_u_net = tag[:4] == 'unet'
+f0_cuesta = args.f0_from_mix
 
-path_to_save_results = 'evaluation/{}/eval_results_{}_{}'.format(args.eval_tag, f0_add_on, test_set_add_on)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+# Load model arguments
+trained_model, model_args = utils.load_model(tag, device, return_args=True)
+trained_model.return_synth_params = False
+trained_model.return_sources=True
+voices = model_args['voices'] if 'voices' in model_args.keys() else 'satb'
+original_cunet = model_args['original_cu_net'] if 'original_cu_net' in model_args.keys() else False
+
+# Initialize results path
+if args.test_set == 'CSD': test_set_add_on = 'CSD'
+if args.f0_from_mix: f0_add_on = 'mf0'
+path_to_save_results = 'evaluation/{}/eval_results_{}_{}_{}'.format(args.eval_tag, f0_add_on, test_set_add_on, device)
 if not os.path.isdir(path_to_save_results):
     os.makedirs(path_to_save_results, exist_ok=True)
 
@@ -46,14 +56,6 @@ else:
     if not os.path.isdir(path_to_save_results_masking):
         os.makedirs(path_to_save_results_masking, exist_ok=True)
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-trained_model, model_args = utils.load_model(tag, device, return_args=True)
-trained_model.return_synth_params = False
-trained_model.return_sources=True
-
-voices = model_args['voices'] if 'voices' in model_args.keys() else 'satb'
-original_cunet = model_args['original_cu_net'] if 'original_cu_net' in model_args.keys() else False
 
 
 if args.test_set == 'CSD':
