@@ -30,6 +30,7 @@ tag = args.tag
 is_u_net = tag[:4] == 'unet'
 if args.test_set == 'CSD': test_set_add_on = 'CSD'
 if args.f0_from_mix: f0_add_on = 'mf0'
+f0_cuesta = args.f0_from_mix
 
 parser.add_argument('--eval-tag', type=str, default=tag)
 args, _ = parser.parse_known_args()
@@ -53,22 +54,18 @@ trained_model.return_sources=True
 
 voices = model_args['voices'] if 'voices' in model_args.keys() else 'satb'
 original_cunet = model_args['original_cu_net'] if 'original_cu_net' in model_args.keys() else False
-f0_cuesta = args.f0_from_mix
 
 
 if args.test_set == 'CSD':
     el_rossinyol = data.CSD(song_name='El Rossinyol', example_length=model_args['example_length'], allowed_voices=voices,
                         return_name=True, n_sources=model_args['n_sources'], singer_nb=[2], random_mixes=False,
                         f0_from_mix=f0_cuesta, cunet_original=original_cunet)
-
     locus_iste = data.CSD(song_name='Locus Iste', example_length=model_args['example_length'], allowed_voices=voices,
                          return_name=True, n_sources=model_args['n_sources'], singer_nb=[3], random_mixes=False,
                          f0_from_mix=f0_cuesta, cunet_original=original_cunet)
-
     nino_dios = data.CSD(song_name='Nino Dios', example_length=model_args['example_length'], allowed_voices=voices,
                      return_name=True, n_sources=model_args['n_sources'], singer_nb=[4], random_mixes=False,
                      f0_from_mix=f0_cuesta, cunet_original=original_cunet)
-
     test_set = torch.utils.data.ConcatDataset([el_rossinyol, locus_iste, nino_dios])
 
 
