@@ -17,26 +17,23 @@ import ddsp.spectral_ops
 
 from tqdm import tqdm
 
-show_progress = True
-
 torch.manual_seed(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--tag', type=str)
 parser.add_argument('--test-set', type=str, default='El Rossinyol', choices=['CSD'])
 parser.add_argument('--f0-from-mix', action='store_true', default=True)
+parser.add_argument('--show-progress', action='store_true', default=False)
 args, _ = parser.parse_known_args()
 
 tag = args.tag
-
 is_u_net = tag[:4] == 'unet'
+if args.test_set == 'CSD': test_set_add_on = 'CSD'
+if args.f0_from_mix: f0_add_on = 'mf0'
 
 parser.add_argument('--eval-tag', type=str, default=tag)
 args, _ = parser.parse_known_args()
 
-if args.f0_from_mix: f0_add_on = 'mf0'
-
-if args.test_set == 'CSD': test_set_add_on = 'CSD'
 
 path_to_save_results = 'evaluation/{}/eval_results_{}_{}'.format(args.eval_tag, f0_add_on, test_set_add_on)
 if not os.path.isdir(path_to_save_results):
@@ -91,7 +88,7 @@ for seed in range(n_seeds):
     rng_state_torch = torch.get_rng_state()
 
     #for d in data_loader:
-    for idx in tqdm( range(len(test_set)), disable = not show_progress):
+    for idx in tqdm( range(len(test_set)), disable = not args.show_progress):
 
         d = test_set[idx]
 

@@ -12,5 +12,5 @@ eval_mode='default' # default evaluation
 
 if eval_mode=='default':
     for tag in tags:
-        print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
-        os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
+        print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress".format(tag))
+        os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress".format(tag))
