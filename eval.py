@@ -25,14 +25,21 @@ parser.add_argument('--tag', type=str)
 parser.add_argument('--test-set', type=str, default='El Rossinyol', choices=['CSD'])
 parser.add_argument('--f0-from-mix', action='store_true', default=True)
 parser.add_argument('--show-progress', action='store_true', default=False)
-parser.add_argument('--compute', type=str, default='all', choices=['all','fast'])
 args, _ = parser.parse_known_args()
 tag = args.tag
 parser.add_argument('--eval-tag', type=str, default=tag)
 args, _ = parser.parse_known_args()
-
 is_u_net = tag[:4] == 'unet'
 f0_cuesta = args.f0_from_mix
+
+parser.add_argument('--compute', nargs='+', default=['all'], choices=['all','sp_SNR','sp_SI-SNR','mel_cepstral_distance',
+                                                                'SI-SDR_mask','sp_SNR_mask','sp_SI-SNR_mask','mel_cepstral_distance_mask'])
+for _ , value in parser.parse_args()._get_kwargs():
+    to_compute=value
+    if ['all'] in to_compute:
+        to_compute=['sp_SNR','sp_SI-SNR','mel_cepstral_distance','SI-SDR_mask',
+                    'sp_SNR_mask','sp_SI-SNR_mask','mel_cepstral_distance_mask']
+    break
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -43,7 +50,7 @@ trained_model.return_sources=True
 voices = model_args['voices'] if 'voices' in model_args.keys() else 'satb'
 original_cunet = model_args['original_cu_net'] if 'original_cu_net' in model_args.keys() else False
 
-# Initialize results path
+# Initialize results and results_masking path
 if args.test_set == 'CSD': test_set_add_on = 'CSD'
 if args.f0_from_mix: f0_add_on = 'mf0'
 path_to_save_results = 'evaluation/{}/eval_results_{}_{}_{}'.format(args.eval_tag, f0_add_on, test_set_add_on, device)
@@ -57,7 +64,7 @@ else:
         os.makedirs(path_to_save_results_masking, exist_ok=True)
 
 
-
+# Initialize CSD test_set
 if args.test_set == 'CSD':
     el_rossinyol = data.CSD(song_name='El Rossinyol', example_length=model_args['example_length'], allowed_voices=voices,
                         return_name=True, n_sources=model_args['n_sources'], singer_nb=[2], random_mixes=False,
@@ -71,6 +78,7 @@ if args.test_set == 'CSD':
     test_set = torch.utils.data.ConcatDataset([el_rossinyol, locus_iste, nino_dios])
 
 
+#Init results dataframes
 eval_results = pd.DataFrame({'mix_name': [], 'eval_seed': [], 'voice': [], 'eval_frame': [], 'sp_SNR': [], 'sp_SI-SNR': [],
                              'mel_cep_dist': []})
 
@@ -199,7 +207,7 @@ stds = eval_results.std(axis=0, skipna=True, numeric_only=True)
 print(tag)
 print('sp_SNR:', 'mean', means['sp_SNR'], 'median', medians['sp_SNR'], 'std', stds['sp_SNR'])
 print('sp_SI-SNR', 'mean', means['sp_SI-SNR'], 'median', medians['sp_SI-SNR'], 'std', stds['sp_SI-SNR'])
-print('mel cepstral distance:', 'mean', means['mel_cep_dist'], 'median', medians['mel_cep_dist'], 'std', stds['mel_cep_dist'])
+print('mel cepstral distance', 'mean', means['mel_cep_dist'], 'median', medians['mel_cep_dist'], 'std', stds['mel_cep_dist'])
 
 eval_results_masking.to_pickle(path_to_save_results_masking + '/all_results.pandas')
 means_masking = eval_results_masking.mean(axis=0, skipna=True, numeric_only=True)
@@ -207,8 +215,8 @@ medians_masking = eval_results_masking.median(axis=0, skipna=True, numeric_only=
 stds_masking = eval_results_masking.std(axis=0, skipna=True, numeric_only=True)
 
 print(tag + '_masking')
-print('SI-SDR:', 'mean', means_masking['SI-SDR'], 'median', medians_masking['SI-SDR'], 'std', stds_masking['SI-SDR'])
-print('sp_SNR:', 'mean', means_masking['sp_SNR'], 'median', medians_masking['sp_SNR'], 'std', stds_masking['sp_SNR'])
+print('SI-SDR', 'mean', means_masking['SI-SDR'], 'median', medians_masking['SI-SDR'], 'std', stds_masking['SI-SDR'])
+print('sp_SNR', 'mean', means_masking['sp_SNR'], 'median', medians_masking['sp_SNR'], 'std', stds_masking['sp_SNR'])
 print('sp_SI-SNR', 'mean', means_masking['sp_SI-SNR'], 'median', medians_masking['sp_SI-SNR'], 'std', stds_masking['sp_SI-SNR'])
 print('mel cepstral distance:', 'mean', means_masking['mel_cep_dist'], 'median', medians_masking['mel_cep_dist'], 'std', stds_masking['mel_cep_dist'])
 
