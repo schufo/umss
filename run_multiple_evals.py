@@ -10,7 +10,7 @@ models_to_evaluate = [
 # eval_mode='default' # default evaluation
 eval_mode='fast' # fast evaluation
 
-if eval_mode=='original':
+if eval_mode=='original_paper':
     for tag in models_to_evaluate:
         print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
         os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
