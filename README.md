@@ -30,7 +30,7 @@ The following conda packages are required:
     scikit-learn=0.23.2
     tensorboard=2.3.0
     resampy=0.2.2
-    pandas==1.2.3
+    pandas=1.2.3
 
 These packages can be found using the conda-forge and pytorch channels. 
     
