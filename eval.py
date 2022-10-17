@@ -28,9 +28,10 @@ parser.add_argument('--f0-from-mix', action='store_true', default=True)
 parser.add_argument('--show-progress', action='store_true', default=False)
 args, _ = parser.parse_known_args()
 tag = args.tag
+is_u_net = tag[:4] == 'unet'
 parser.add_argument('--eval-tag', type=str, default=tag)
 args, _ = parser.parse_known_args()
-is_u_net = tag[:4] == 'unet'
+
 f0_cuesta = args.f0_from_mix
 
 parser.add_argument('--compute', nargs='+', default=['all'], choices=['all','sp_SNR','sp_SI-SNR','mel_cep_dist',

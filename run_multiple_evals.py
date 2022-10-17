@@ -10,17 +10,16 @@ models_to_evaluate = [
 # eval_mode='default' # default evaluation
 eval_mode='fast' # fast evaluation
 
-if eval_mode=='original_paper':
-    for tag in models_to_evaluate:
-        print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
-        os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag))
+for tag in models_to_evaluate:
+    
+    if eval_mode=='original_paper':
+        command="python eval.py --tag '{}' --f0-from-mix --test-set 'CSD'".format(tag)
+    
+    elif eval_mode=='default':
+        command="python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute all".format(tag)
+        
+    elif eval_mode=='fast':
+        command="python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute SI-SDR_mask".format(tag)
 
-elif eval_mode=='default':
-    for tag in models_to_evaluate:
-        print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute all".format(tag))
-        os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute all".format(tag))
-
-elif eval_mode=='fast':
-    for tag in models_to_evaluate:
-        print("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute SI-SDR_mask".format(tag))
-        os.system("python eval.py --tag '{}' --f0-from-mix --test-set 'CSD' --show-progress --compute SI-SDR_mask".format(tag))
+    print(command)
+    os.system(command)
