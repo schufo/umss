@@ -15,6 +15,7 @@ The log file will not clean itself if you delete evaluation folders.
 
 As of right now, having only one seed is forced, for no reason other than for speed.
 As of right now, for the n_strict_errors test, there is only one mask seed.
+As of right now, parsed argument --show-progress is not implemented.
 '''
 
 from cmath import nan
@@ -141,14 +142,14 @@ def eval_body(n_seeds,test_set,el_rossinyol_gtf0_df,locus_iste_gtf0_df,nino_dios
 
             print('seed :',seed, '| completion :', idx,'/ 101', '| mixture name :', name)
 
-            '''Find current ms start point'''
+            # Find current ms start point
             startOfItemWindow=math.ceil(float(name[-(len(name)-name.rfind("_")-1):])) #reads last floating point number from the mix_name which indicates the start of the CSD item Window and converts it to int
             startOfItemWindow=(1000*startOfItemWindow) # convert to ms
             
-            '''Find current song name'''
+            # Find current song name
             current_song=name[:find_nth(name,'_',2)] #can be el_rossinyol, locus_iste, nino_dios
 
-            '''select correct ground truth f0 dataframe according to the current song'''
+            # select correct ground truth f0 dataframe according to the current song
             which_df_for_song={
                 'el_rossinyol':el_rossinyol_gtf0_df,
                 'locus_iste':locus_iste_gtf0_df,
@@ -156,19 +157,16 @@ def eval_body(n_seeds,test_set,el_rossinyol_gtf0_df,locus_iste_gtf0_df,nino_dios
                 }
             gtf0=which_df_for_song[current_song]
 
-            '''localize the interesting part of gtf0 that will be fed to f0_hz'''
-            # d1_replacer=gtf0.loc[[ startOfItemWindow + transpose + 16*x for x in range(250) ]][['s','a','t','b']]
+            # localize the interesting part of gtf0 that will be fed to f0_hz
             d1_replacer=gtf0.iloc[[ startOfItemWindow//16 -1 + x for x in range(250) ]][['s','a','t','b']]
-
-            '''convert d1_replacer to torch.tensors'''
             d1_replacer = torch.tensor(d1_replacer.values.astype(float32))
 
-            '''load d1_replacer into f0_hz to eval as usual'''
-            # f0_hz = d[1].to(device) #Instead of using the Cuesta-generatede F0 mixtures, I am using CREPE Ground Truth f0s
+            # load d1_replacer into f0_hz to eval as usual
+            #Instead of using the Cuesta-generated F0 mixtures, using CREPE Ground Truth f0s # f0_hz = d[1].to(device) 
             f0_hz = d1_replacer.to(device)
             f0_hz = f0_hz[None, :, :] # formatting
 
-            '''eval as usual'''
+            # evaluation as usual
             mix = d[0].to(device)
             target_sources = d[2].to(device)
             mix = mix.unsqueeze(0)
@@ -181,7 +179,7 @@ def eval_body(n_seeds,test_set,el_rossinyol_gtf0_df,locus_iste_gtf0_df,nino_dios
             # reset rng state so that each example gets the same state
             torch.random.set_rng_state(rng_state_torch)
             with torch.no_grad():
-                '''use model'''
+                # use model
                 if is_u_net: 
                     n_hop = int(trained_model.n_fft - trained_model.overlap * trained_model.n_fft)
                     estimated_sources = utils.masking_unets_softmasks(trained_model, mix, f0_hz, n_sources,
@@ -195,16 +193,16 @@ def eval_body(n_seeds,test_set,el_rossinyol_gtf0_df,locus_iste_gtf0_df,nino_dios
                     # [batch_size * n_sources, n_samples]
                     source_estimates_masking = utils.masking_from_synth_signals_torch(mix, source_estimates, n_fft=2048, n_hop=256)
 
-                '''pre-process for post-process calculations'''
+                # pre-process for post-process calculations
                 target_sources = target_sources.transpose(1, 2)  # [batch_size, n_sources, n_samples]
                 target_sources = target_sources.reshape((batch_size * n_sources, n_samples))
                 source_estimates = source_estimates.reshape((batch_size * n_sources, n_samples))
 
-                '''compute SI-SDR masking'''
+                # compute SI-SDR masking
                 si_sdr_masking = em.si_sdr(target_sources, source_estimates_masking)
                 si_sdr_masking = si_sdr_masking.reshape((batch_size, n_sources, -1)).cpu().numpy()
 
-            '''Prepare batch_results'''
+            # Prepare batch_results
             mix_names = [name for _ in range(n_sources * n_eval_frames)]
             voice = [v for v in voices for _ in range(n_eval_frames)]
             eval_frame = [f for _ in range(n_sources * batch_size) for f in range(n_eval_frames)]
