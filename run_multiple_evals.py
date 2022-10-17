@@ -8,8 +8,8 @@ models_to_evaluate = [
         ]
 
 # eval_mode='default' # default evaluation
-# eval_mode='fast' # fast evaluation
-eval_mode='robustness' # run many unique evaluations for each model, following different types of robustness tests
+eval_mode='fast' # fast evaluation
+# eval_mode='robustness' # run many unique evaluations for each model, following different types of robustness tests
 
 for tag in models_to_evaluate:
     

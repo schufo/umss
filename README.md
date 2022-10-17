@@ -32,7 +32,17 @@ The following conda packages are required:
     resampy=0.2.2
     pandas=1.2.3
 
-These packages can be found using the conda-forge and pytorch channels. 
+These packages can be found using the conda-forge and pytorch channels.
+From a new conda environment:
+
+    conda update conda
+    conda config --add channels conda-forge
+    conda config --set channel_priority strict
+    conda config --add channels pytorch
+    conda config --add channels pytorch
+    conda install pytorch=1.6.0
+    conda install matplotlib=3.3.1 python-sounddevice=0.4.0 scipy=1.5.2 torchaudio=0.6.0 tqdm=4.49.0 pysoundfile=0.10.3 librosa=0.8.0 scikit-learn=0.23.2 tensorboard=2.3.0 resampy=0.2.2 pandas=1.2.3
+
     
 ## Training
 
