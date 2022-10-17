@@ -15,7 +15,9 @@ The log file will not clean itself if you delete evaluation folders.
 
 As of right now, having only one seed is forced, for no reason other than for speed.
 As of right now, for the n_strict_errors test, there is only one mask seed.
-As of right now, parsed argument --show-progress is not implemented.
+As of right now, parsed argument --show-progress is not implemented, rather a ugly progress bar was implemented.
+
+This function only works with models estimating 4 sources.
 '''
 
 from cmath import nan

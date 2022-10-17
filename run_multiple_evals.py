@@ -3,7 +3,7 @@
 import os
 
 models_to_evaluate = [
-        'unsupervised_2s_satb_bcbq_mf0_1',
+        # 'unsupervised_2s_satb_bcbq_mf0_1',
         'unsupervised_4s_satb_bcbq_mf0_1_again'
         ]
 
