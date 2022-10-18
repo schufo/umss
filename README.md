@@ -17,7 +17,7 @@ Please cite the paper, if you use parts of the code in your work.
 
 ## Requirements
 
-The following conda packages are required:
+The following packages are required:
 
     pytorch=1.6.0
     matplotlib=3.3.1
