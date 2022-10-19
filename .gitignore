@@ -5,7 +5,7 @@ OSU/
 .mypy_cache
 .vscode
 *.json
-*.wav
+# *.wav
 *.mp3
 *.pth.tar
 env*/
