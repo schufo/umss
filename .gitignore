@@ -5,7 +5,7 @@ OSU/
 .mypy_cache
 .vscode
 *.json
-*.wav
+# *.wav
 *.mp3
 *.pth.tar
 env*/
@@ -102,7 +102,6 @@ Temporary Items
 .idea/
 
 # my directories
-/Datasets/*/*/audio_16kHz/
 /robustness_tests/evaluation/
 /robustness_tests/robustness_eval_log.csv
 /trained_models/*
