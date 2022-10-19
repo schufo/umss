@@ -33,6 +33,7 @@ The following packages are required:
     pandas=1.2.3
 
 These packages can be found using the conda-forge and pytorch channels.
+Python 3.7 or 3.8 is recommended.
 From a new conda environment:
 
     conda update conda
