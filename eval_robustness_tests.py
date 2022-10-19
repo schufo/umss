@@ -20,8 +20,8 @@ As of right now, parsed argument --show-progress is not implemented, rather a ug
 This function only works with models estimating 4 sources.
 '''
 
-from cmath import nan
-from operator import index
+#from cmath import nan
+#from operator import index
 import os
 import pickle
 import json

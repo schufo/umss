@@ -106,7 +106,9 @@ Temporary Items
 /robustness_tests/robustness_eval_log.csv
 /trained_models/*
 !/trained_models/unsupervised_2s_satb_bcbq_mf0_1/
+!/trained_models/unsupervised_2s_satb_bcbq_mf0_1/*.json
 !/trained_models/unsupervised_4s_satb_bcbq_mf0_1_again/
+!/trained_models/unsupervised_4s_satb_bcbq_mf0_1_again/*.json
 /tensorboard/*
 /documentation/
 /cluster_logs/*
