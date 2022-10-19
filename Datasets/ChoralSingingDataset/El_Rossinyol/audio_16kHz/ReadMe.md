@@ -1,1 +1,0 @@
-DO: Add every singer for every voice from the El_Rossinyol song from the CSD Database here.

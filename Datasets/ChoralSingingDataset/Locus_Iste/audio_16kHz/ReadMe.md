@@ -1,1 +1,0 @@
-DO: Add every singer for every voice from the Locus_Iste song from the CSD Database here.
