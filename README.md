@@ -1,6 +1,6 @@
-# Unsupervised Audio Source Separation Using Differentiable Parametric Source Models
+# Unsupervised Music Source Separation Using Differentiable Parametric Source Models
 
-This is the source code for the experiments related to the paper [Unsupervised Audio Source Separation Using Differentiable Parametric Source Models](https://arxiv.org/abs/2201.09592).  
+This is the source code for the experiments related to the paper [Unsupervised Music Source Separation Using Differentiable Parametric Source Models](https://arxiv.org/abs/2201.09592).  
 
 It contains a re-implementation of parts of the DDSP library in PyTorch. We added a differentiable all-pole filter which can be parameterized by line spectral frequencies or reflection coefficients. 
 
