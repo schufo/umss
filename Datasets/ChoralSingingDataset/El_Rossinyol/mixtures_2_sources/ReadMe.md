@@ -1,0 +1,1 @@
+Description: Cuesta-calculated f0 information of all permutations of 2 different voices with any of the 4 singers of the El_Rossinyol song (for a total of 96 permutations).

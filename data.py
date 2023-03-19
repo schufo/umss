@@ -17,7 +17,7 @@ import csv
 import itertools
 
 import utils
-import ddsp.core, ddsp.synthetic_data
+import ddsp.core
 
 
 def load_datasets(parser, args):
@@ -220,10 +220,14 @@ class CSD(torch.utils.data.Dataset):
         elif song_name == 'Locus Iste': self.total_audio_length = 190; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
         elif song_name == 'Nino Dios': self.total_audio_length = 103; self.voice_ids = ['Soprano', 'ContraAlt','tenor', 'Bajos']
 
-        self.audio_files = sorted(glob.glob('../Datasets/ChoralSingingDataset/{}/audio_16kHz/*.wav'.format(song_name)))
-        self.crepe_dir = '../Datasets/ChoralSingingDataset/{}/crepe_f0_center'.format(song_name)
+        if song_name == 'El Rossinyol' : song_name = 'El_Rossinyol'
+        elif song_name == 'Locus Iste' : song_name = 'Locus_Iste'
+        elif song_name == 'Nino Dios' : song_name = 'Nino_Dios'
 
-        f0_cuesta_dir = '../Datasets/ChoralSingingDataset/{}/mixtures_{}_sources/mf0_cuesta_processed/*.pt'.format(song_name, n_sources)
+        self.audio_files = sorted(glob.glob('./Datasets/ChoralSingingDataset/{}/audio_16kHz/*.wav'.format(song_name)))
+        self.crepe_dir = './Datasets/ChoralSingingDataset/{}/crepe_f0_center'.format(song_name)
+
+        f0_cuesta_dir = './Datasets/ChoralSingingDataset/{}/mixtures_{}_sources/mf0_cuesta_processed/*.pt'.format(song_name, n_sources)
         self.f0_cuesta_files = sorted(list(glob.glob(f0_cuesta_dir)))
 
         if not random_mixes:
@@ -304,21 +308,21 @@ class CSD(torch.utils.data.Dataset):
 
             file_name = audio_file.split('/')[-1][:-4]
 
-            confidence_file = '{}/{}_confidence.npy'.format(self.crepe_dir, file_name)
-            confidence = np.load(confidence_file)[crepe_start_frame:crepe_end_frame]
-            f0_file = '{}/{}_frequency.npy'.format(self.crepe_dir, file_name)
-            frequency = np.load(f0_file)[crepe_start_frame:crepe_end_frame]
-            frequency = np.where(confidence < self.conf_threshold, 0, frequency)
+            # confidence_file = '{}/{}_confidence.npy'.format(self.crepe_dir, file_name)
+            # confidence = np.load(confidence_file)[crepe_start_frame:crepe_end_frame]
+            # f0_file = '{}/{}_frequency.npy'.format(self.crepe_dir, file_name)
+            # frequency = np.load(f0_file)[crepe_start_frame:crepe_end_frame]
+            # frequency = np.where(confidence < self.conf_threshold, 0, frequency)
 
-            frequency = torch.from_numpy(frequency).type(torch.float32)
-            f0_list.append(frequency)
+            # frequency = torch.from_numpy(frequency).type(torch.float32)
+            # f0_list.append(frequency)
 
             singer_id = '_' + voice[0].replace('C', 'A') + file_name[-6:]
             contained_singer_ids.append(singer_id)
             name += '{}'.format(singer_id)
 
-            if not self.plus_one_f0_frame and not self.cunet_original:
-                assert len(audio) / 256 == len(frequency), 'audio and frequency lengths are inconsistent'
+            # if not self.plus_one_f0_frame and not self.cunet_original:
+            #     assert len(audio) / 256 == len(frequency), 'audio and frequency lengths are inconsistent'
 
         sources = torch.stack(sources_list, dim=1)  # [n_samples, n_sources]
 
@@ -328,8 +332,8 @@ class CSD(torch.utils.data.Dataset):
             f0_from_mix_file = [file for file in self.f0_cuesta_files if any([ids in file for ids in permuted_mix_ids])][0]
             f0_estimates = torch.load(f0_from_mix_file)[crepe_start_frame:crepe_end_frame, :]
             frequencies = f0_estimates
-        else:
-            frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]
+        # else:
+        #     frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]
 
         name += '_{}'.format(np.round(audio_start_time, decimals=3))
 
@@ -371,10 +375,10 @@ class BCBQDataSets(torch.utils.data.Dataset):
         self.voice_choices = [voices_dict[v] for v in allowed_voices]
         self.voice_ids = ['s', 'a', 't', 'b']
 
-        self.audio_files = sorted(glob.glob('../Datasets/{}/audio_16kHz/*.wav'.format(data_set)))
+        self.audio_files = sorted(glob.glob('./Datasets/{}/audio_16kHz/*.wav'.format(data_set)))
         # file 17_BC021_part11_s_1ch.wav is empty  --> exclude 17_BC021_part11
         self.audio_files = [f for f in self.audio_files if '17_BC021_part11' not in f]
-        self.crepe_dir = '../Datasets/{}/crepe_f0_center'.format(data_set)
+        self.crepe_dir = './Datasets/{}/crepe_f0_center'.format(data_set)
 
         if data_set == 'BC':
             if one_song:
@@ -391,7 +395,7 @@ class BCBQDataSets(torch.utils.data.Dataset):
                 if validation_subset: self.audio_files = self.audio_files[- (13+11)*4 :]  # only 8_BQ and 9_BQ
                 else: self.audio_files = self.audio_files[: - (13+11)*4]  # all except 8_BQ and 9_BQ
 
-        self.f0_cuesta_dir = '../Datasets/{}/mixtures_{}_sources/mf0_cuesta_processed'.format(data_set, n_sources)
+        self.f0_cuesta_dir = './Datasets/{}/mixtures_{}_sources/mf0_cuesta_processed'.format(data_set, n_sources)
 
         if not random_mixes:
             # number of non-overlapping excerpts
