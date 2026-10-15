@@ -255,14 +255,14 @@ def main():
     parser.add_argument('--quiet', action='store_true', default=False,
                         help='less verbose during training')
     parser.add_argument('--no-cuda', action='store_true', default=False,
-                        help='disables CUDA training')
+                        help='disables GPU (CUDA/MPS) training')
 
 
     args, _ = parser.parse_known_args()
 
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-    print("Using GPU:", use_cuda)
-    #print("Using Torchaudio: ", utils._torchaudio_available())
+    device = torch.device(utils.get_device(use_accelerator=not args.no_cuda))
+    use_cuda = device.type == 'cuda'
+    print("Using device:", device)
     dataloader_kwargs = {'num_workers': args.nb_workers, 'pin_memory': True} if use_cuda else {}
 
     # create output dir if not exist
@@ -282,7 +282,6 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    device = torch.device("cuda" if use_cuda else "cpu")
 
     train_dataset, valid_dataset, args = data.load_datasets(parser, args)
 
@@ -335,7 +334,7 @@ def main():
             results = json.load(stream)
 
         target_model_path = Path(model_path, args.wst_model + ".pth")
-        state_dict = torch.load(target_model_path, map_location=device)
+        state_dict = torch.load(target_model_path, map_location=device, weights_only=True)
         model_to_train.load_state_dict(state_dict)
 
         # train for another epochs_trained

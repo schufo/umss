@@ -9,110 +9,37 @@ import model_utls
 import ddsp.spectral_ops, ddsp.core
 
 import librosa
+import soundfile
 import matplotlib.pyplot as plt
 
-def _sndfile_available():
-    try:
-        import soundfile
-    except ImportError:
-        return False
-
-    return True
-
-
-def _torchaudio_available():
-    try:
-        import torchaudio
-    except ImportError:
-        return False
-
-    return True
+def get_device(use_accelerator=True):
+    """Return 'cuda', 'mps' or 'cpu', preferring an available accelerator unless use_accelerator is False."""
+    if use_accelerator and torch.cuda.is_available():
+        return 'cuda'
+    if use_accelerator and torch.backends.mps.is_available():
+        return 'mps'
+    return 'cpu'
 
 
-def get_loading_backend():
-    if _torchaudio_available():
-        return torchaudio_loader
-
-    if _sndfile_available():
-        return soundfile_loader
-
-
-def get_info_backend():
-    if _torchaudio_available():
-        return torchaudio_info
-
-    if _sndfile_available():
-        return soundfile_info
-
-
-def soundfile_info(path):
-    import soundfile
+def load_info(path):
     info = {}
     sfi = soundfile.info(path)
     info['samplerate'] = sfi.samplerate
-    info['samples'] = int(sfi.duration * sfi.samplerate)
+    info['samples'] = sfi.frames
     info['duration'] = sfi.duration
     return info
 
 
-def soundfile_loader(path, start=0, dur=None):
-    import soundfile
-    # get metadata
-    info = soundfile_info(path)
-    start = int(start * info['samplerate'])
-    # check if dur is none
-    if dur:
-        # stop in soundfile is calc in samples, not seconds
-        stop = start + int(dur * info['samplerate'])
-    else:
-        # set to None for reading complete file
-        stop = dur
-
-    audio, _ = soundfile.read(
-        path,
-        always_2d=True,
-        start=start,
-        stop=stop
-    )
-    return torch.FloatTensor(audio.T), info['samplerate']
-
-
-def torchaudio_info(path):
-    import torchaudio
-    # get length of file in samples
-    info = {}
-    si, _ = torchaudio.info(str(path))
-    info['samplerate'] = si.rate
-    info['samples'] = si.length // si.channels
-    info['duration'] = info['samples'] / si.rate
-    return info
-
-
-def torchaudio_loader(path, start=0, dur=None):
-    import torchaudio
-    info = torchaudio_info(path)
-    # loads the full track duration
-    if dur is None:
-        sig, rate = torchaudio.load(path)
-        return sig
-        # otherwise loads a random excerpt
-    else:
-        num_frames = int(dur * info['samplerate'])
-        offset = int(start * info['samplerate'])
-        sig, rate = torchaudio.load(
-            path, num_frames=num_frames, offset=offset
-        )
-        return sig
-
-
-def load_info(path):
-    loader = get_info_backend()
-    return loader(path)
-
-
 def load_audio(path, start=0, dur=None):
-    loader = get_loading_backend()
-    return loader(path, start=start, dur=dur)
+    """Load audio as a float32 tensor of shape [channels, samples].
+
+    start and dur are given in seconds; dur=None loads until the end of the file.
+    """
+    samplerate = soundfile.info(path).samplerate
+    start = int(start * samplerate)
+    stop = start + int(dur * samplerate) if dur else None
+    audio, _ = soundfile.read(path, always_2d=True, start=start, stop=stop, dtype='float32')
+    return torch.from_numpy(audio.T.copy())
 
 
 def bandwidth_to_max_bin(rate, n_fft, bandwidth):
@@ -211,7 +138,8 @@ def load_model(tag, device='cpu', return_args=False):
     target_model_path = next(Path(model_path).glob("%s*.pth" % tag))
     state = torch.load(
         target_model_path,
-        map_location=device
+        map_location=device,
+        weights_only=True
     )
 
     architecture = results['args']['architecture']
@@ -304,11 +232,11 @@ def masking_from_synth_signals(true_mix, estimated_sources, n_fft=2048, n_hop=25
     n_sources, n_samples = estimated_sources.shape
 
     # get magnitude and phase specrogram of true mix
-    mix_stft = librosa.stft(true_mix, n_fft, n_hop)
+    mix_stft = librosa.stft(true_mix, n_fft=n_fft, hop_length=n_hop, pad_mode='reflect')
 
     source_estimates_mag = []
     for s in range(n_sources):
-        source_mag = abs(librosa.stft(estimated_sources[s, :], n_fft, n_hop))
+        source_mag = abs(librosa.stft(estimated_sources[s, :], n_fft=n_fft, hop_length=n_hop, pad_mode='reflect'))
         source_estimates_mag.append(source_mag)
 
     estimated_mix_mag = sum(source_estimates_mag)
@@ -350,12 +278,12 @@ def masking_unets_softmasks(trained_model, mix, f0_info, n_sources, n_fft=1024, 
 
     mix_padded = ddsp.core.pad_for_stft(mix, n_fft, n_hop)
     mix_padded = mix_padded.cpu().numpy()[0, :]
-    mix_stft = librosa.stft(mix_padded, n_fft=n_fft, hop_length=n_hop, center=True)
+    mix_stft = librosa.stft(mix_padded, n_fft=n_fft, hop_length=n_hop, center=True, pad_mode='reflect')
 
     for s in range(n_sources):
         mask = estimates_mag_sources[s] / (mix_estimate + 1e-12)
         source_stft = mask * mix_stft
-        source_estimate_time_domain = librosa.istft(source_stft, n_hop, n_fft, center=True, length=mix.shape[1])
+        source_estimate_time_domain = librosa.istft(source_stft, hop_length=n_hop, win_length=n_fft, center=True, length=mix.shape[1])
         estimated_sources.append(source_estimate_time_domain)
 
     return estimated_sources
@@ -372,7 +300,7 @@ def masking_unets2(trained_model, mix, f0_info, n_sources, n_fft=1024, n_hop=256
 
         audio_padded = ddsp.core.pad_for_stft(mix, n_fft, n_hop)
         audio_padded = audio_padded.cpu().numpy()[0, :]
-        mix_complex = librosa.stft(audio_padded, n_fft=n_fft, hop_length=n_hop, center=True)
+        mix_complex = librosa.stft(audio_padded, n_fft=n_fft, hop_length=n_hop, center=True, pad_mode='reflect')
 
         source_estimate_complex = mask * mix_complex
         source_estimate_complex = source_estimate_complex.cpu().numpy()

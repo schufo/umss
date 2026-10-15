@@ -36,12 +36,13 @@ f0_cuesta = args.f0_from_mix
 
 parser.add_argument('--compute', nargs='+', default=['all'], choices=['all','sp_SNR','sp_SI-SNR','mel_cep_dist',
                                                                 'SI-SDR_mask','sp_SNR_mask','sp_SI-SNR_mask','mel_cep_dist_mask'])
-for _ , value in parser.parse_args()._get_kwargs():
-    to_compute=value
-    if 'all' in to_compute:
-        to_compute=['sp_SNR','sp_SI-SNR','mel_cep_dist','SI-SDR_mask',
-                    'sp_SNR_mask','sp_SI-SNR_mask','mel_cep_dist_mask']
-    break
+parser.add_argument('--device', type=str, default=None, choices=['cuda', 'mps', 'cpu'],
+                    help='defaults to the best available device')
+args = parser.parse_args()
+to_compute = args.compute
+if 'all' in to_compute:
+    to_compute=['sp_SNR','sp_SI-SNR','mel_cep_dist','SI-SDR_mask',
+                'sp_SNR_mask','sp_SI-SNR_mask','mel_cep_dist_mask']
 
 # Identify what should be computed
 compute_sp_snr = 'sp_SNR' in to_compute
@@ -55,7 +56,7 @@ compute_results=('sp_SNR' or 'sp_SI-SNR' or 'mel_cep_dist' ) in to_compute
 compute_results_masking=('sp_SNR_mask' or 'sp_SI-SNR_mask' or 'SI-SDR_mask' or 'mel_cep_dist_mask') in to_compute
 
 # Load model arguments
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = args.device or utils.get_device()
 trained_model, model_args = utils.load_model(tag, device, return_args=True)
 trained_model.return_synth_params = False
 trained_model.return_sources=True
@@ -222,7 +223,7 @@ for seed in range(n_seeds):
                 batch_results_masking_dict['mel_cep_dist'] = mcd_results_masking
             
             batch_results_masking = pd.DataFrame(batch_results_masking_dict)
-            eval_results_masking = eval_results_masking.append(batch_results_masking, ignore_index=True)
+            eval_results_masking = pd.concat([eval_results_masking, batch_results_masking], ignore_index=True)
 
         # append results of each iteration into eval_results
         if compute_results:
@@ -239,7 +240,7 @@ for seed in range(n_seeds):
                 batch_results_dict['mel_cep_dist'] = mcd_results
 
             batch_results = pd.DataFrame(batch_results_dict)
-            eval_results = eval_results.append(batch_results, ignore_index=True)
+            eval_results = pd.concat([eval_results, batch_results], ignore_index=True)
 
 
 if compute_results:

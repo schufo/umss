@@ -64,19 +64,16 @@ f0_cuesta = args.f0_from_mix
 
 parser.add_argument('--teststocompute', nargs='+', default=['all'], choices=['all','baseline_gtf0','gtf0_transposed',
                                                         'gtf0_octaved','gtf0_voices_missing','gtf0_strict_error_percent'])
-a=0 # this is an awful way to do this
-for _ , value in parser.parse_args()._get_kwargs():
-    if a<=3:
-        a+=1
-        continue
-    tests_to_compute=value
-    if 'all' in tests_to_compute:
-        tests_to_compute=['baseline_gtf0','gtf0_transposed','gtf0_octaved',
-                            'gtf0_voices_missing','gtf0_strict_error_percent']
-    break
+parser.add_argument('--device', type=str, default=None, choices=['cuda', 'mps', 'cpu'],
+                    help='defaults to the best available device')
+args = parser.parse_args()
+tests_to_compute = args.teststocompute
+if 'all' in tests_to_compute:
+    tests_to_compute=['baseline_gtf0','gtf0_transposed','gtf0_octaved',
+                        'gtf0_voices_missing','gtf0_strict_error_percent']
 
 # Load model arguments
-device = 'cuda' if torch.cuda.is_available() else 'cpu' #Cuda is mandatory to reproduce results from the paper.
+device = args.device or utils.get_device() #Cuda is mandatory to reproduce results from the paper.
 trained_model, model_args = utils.load_model(tag, device, return_args=True)
 trained_model.return_synth_params = False
 trained_model.return_sources=True
@@ -213,7 +210,7 @@ def eval_body(n_seeds,test_set,el_rossinyol_gtf0_df,locus_iste_gtf0_df,nino_dios
 
             batch_results_masking = pd.DataFrame({'mix_name': mix_names, 'eval_seed': seed_results, 'voice': voice, 'eval_frame': eval_frame, 'SI-SDR': si_sdr_results_masking })
             
-            eval_results_masking = eval_results_masking.append(batch_results_masking, ignore_index=True)
+            eval_results_masking = pd.concat([eval_results_masking, batch_results_masking], ignore_index=True)
     return(eval_results_masking)
 
 def print_stats(tag,eval_results_masking):
@@ -241,7 +238,7 @@ def add_results_to_log(eval_results_masking,tag,device,test_name,test_index):
         "SI-SDR_mean" : eval_results_masking.mean(axis=0, skipna=True, numeric_only=True)['SI-SDR'],
         "SI-SDR_median" : eval_results_masking.median(axis=0, skipna=True, numeric_only=True)['SI-SDR'],
         "SI-SDR_std": eval_results_masking.std(axis=0, skipna=True, numeric_only=True)['SI-SDR']}
-    log_df = log_df.append(pd.Series(new_row), ignore_index=True)
+    log_df = pd.concat([log_df, pd.DataFrame([new_row])], ignore_index=True)
     log_df = log_df[["model","device","test_name","test_index", "SI-SDR_mean", "SI-SDR_median", "SI-SDR_std"]]
     log_df.sort_values(by=["device","model","test_name","test_index"],inplace=True)
     log_df.to_csv('./robustness_tests/robustness_eval_log.csv')

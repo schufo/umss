@@ -113,3 +113,6 @@ Temporary Items
 /documentation/
 /cluster_logs/*
 /evaluation/
+
+# uv
+.venv/

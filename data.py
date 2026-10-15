@@ -330,7 +330,7 @@ class CSD(torch.utils.data.Dataset):
             permutations = list(itertools.permutations(contained_singer_ids))
             permuted_mix_ids = [''.join(s) for s in permutations]
             f0_from_mix_file = [file for file in self.f0_cuesta_files if any([ids in file for ids in permuted_mix_ids])][0]
-            f0_estimates = torch.load(f0_from_mix_file)[crepe_start_frame:crepe_end_frame, :]
+            f0_estimates = torch.load(f0_from_mix_file, weights_only=True)[crepe_start_frame:crepe_end_frame, :]
             frequencies = f0_estimates
         # else:
         #     frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]
@@ -500,7 +500,7 @@ class BCBQDataSets(torch.utils.data.Dataset):
 
         if self.f0_from_mix:
             f0_from_mix_file = self.f0_cuesta_dir + '/' + name + '.pt'
-            f0_estimates = torch.load(f0_from_mix_file)[crepe_start_frame:crepe_end_frame, :]
+            f0_estimates = torch.load(f0_from_mix_file, weights_only=True)[crepe_start_frame:crepe_end_frame, :]
             frequencies = f0_estimates
         else:
             frequencies = torch.stack(f0_list, dim=1)  # [n_frames, n_sources]

@@ -564,9 +564,10 @@ def frequency_impulse_response(magnitudes: torch.Tensor,
     # a real, even signal has a real, even Fourier transform (even => h(n)=h(-n))
     # since we define the one-sided magnitude response and assume the phase to be zero,
     # the result of the iDFT is an even impulse response, i.e. zero-phase form.
-    magnitudes = magnitudes.unsqueeze(-1)  # add last dimension for real and imaginary parts
-    magnitudes = torch.cat([magnitudes, torch.zeros_like(magnitudes)], dim=-1)
-    impulse_response = torch.irfft(magnitudes, signal_ndim=1)
+    # n = 2 * n_frequencies - 1 reproduces the output length of the removed torch.irfft (torch < 1.8),
+    # which the published models were trained with.
+    impulse_response = torch.fft.irfft(torch.complex(magnitudes, torch.zeros_like(magnitudes)),
+                                       n=2 * magnitudes.shape[-1] - 1)
 
     # Window and put in causal form.
     impulse_response = apply_window_to_impulse_response(impulse_response,
@@ -721,8 +722,8 @@ def fft_convolve(audio: torch.Tensor,
     pad_length_ir = fft_size - ir_size
     impulse_response = torch.nn.functional.pad(impulse_response, pad=(0, pad_length_ir))
 
-    audio_fft = torch.view_as_complex(torch.rfft(audio_frames, signal_ndim=1))
-    ir_fft = torch.view_as_complex(torch.rfft(impulse_response, signal_ndim=1))
+    audio_fft = torch.fft.rfft(audio_frames)
+    ir_fft = torch.fft.rfft(impulse_response)
 
     if cross_fade:
         audio_frames_out = cross_fade_time_varying_fir(audio_fft, ir_fft, frame_size, ir_size, fft_size)
@@ -732,8 +733,7 @@ def fft_convolve(audio: torch.Tensor,
         audio_ir_fft = audio_fft * ir_fft
 
         # Take the IFFT to resynthesize audio.
-        audio_ir_fft = torch.view_as_real(audio_ir_fft)
-        audio_frames_out = torch.irfft(audio_ir_fft, signal_ndim=1, signal_sizes=(audio_frames.shape[-1],))
+        audio_frames_out = torch.fft.irfft(audio_ir_fft, n=audio_frames.shape[-1])
 
     audio_frames_out = audio_frames_out.transpose(1, 2)  # [batch_size, frame_size, n_frames]
 
@@ -777,11 +777,8 @@ def cross_fade_time_varying_fir(audio_fft,
     audio_ir_fft_prev = audio_fft * torch.roll(ir_fft, shifts=1, dims=1)
 
     # Take the IFFT to resynthesize audio.
-    audio_ir_fft = torch.view_as_real(audio_ir_fft)
-    audio_frames_out = torch.irfft(audio_ir_fft, signal_ndim=1, signal_sizes=(fft_size,))
-
-    audio_ir_fft_prev = torch.view_as_real(audio_ir_fft_prev)
-    audio_frames_out_prev = torch.irfft(audio_ir_fft_prev, signal_ndim=1, signal_sizes=(fft_size,))
+    audio_frames_out = torch.fft.irfft(audio_ir_fft, n=fft_size)
+    audio_frames_out_prev = torch.fft.irfft(audio_ir_fft_prev, n=fft_size)
 
 
     convolved_frame_size = audio_frame_size + ir_size - 1  # signal length after convolution
@@ -795,9 +792,9 @@ def cross_fade_time_varying_fir(audio_fft,
     # fade_out = cos^2(pi * n / (2 * overlap))
     # fade_in + fade_out = 1
     fade_in = torch.ones_like(audio_frames_out)
-    fade_in[:, 1:, :overlap] = torch.sin(pi * torch.linspace(0, overlap, overlap) / (2 * overlap)) ** 2
+    fade_in[:, 1:, :overlap] = torch.sin(pi * torch.linspace(0, overlap, overlap, device=audio_frames_out.device) / (2 * overlap)) ** 2
     fade_out = torch.zeros_like(audio_frames_out_prev)
-    fade_out[:, 1:, :overlap] = torch.cos(pi * torch.linspace(0, overlap, overlap) / (2 * overlap)) ** 2
+    fade_out[:, 1:, :overlap] = torch.cos(pi * torch.linspace(0, overlap, overlap, device=audio_frames_out.device) / (2 * overlap)) ** 2
     # apply fading
     audio_frames_out = audio_frames_out * fade_in
     audio_frames_out_prev = audio_frames_out_prev * fade_out
@@ -910,15 +907,14 @@ def fft_convolve_windowed(audio: torch.Tensor,
     pad_length_ir = fft_size - ir_size
     impulse_response = torch.nn.functional.pad(impulse_response, pad=(0, pad_length_ir))
 
-    audio_fft = torch.view_as_complex(torch.rfft(audio_frames, signal_ndim=1))
-    ir_fft = torch.view_as_complex(torch.rfft(impulse_response, signal_ndim=1))
+    audio_fft = torch.fft.rfft(audio_frames)
+    ir_fft = torch.fft.rfft(impulse_response)
 
     # Multiply the FFTs (same as convolution in time).
     audio_ir_fft = audio_fft * ir_fft
 
     # Take the IFFT to resynthesize audio.
-    audio_ir_fft = torch.view_as_real(audio_ir_fft)
-    audio_frames_out = torch.irfft(audio_ir_fft, signal_ndim=1, signal_sizes=(audio_frames.shape[-1],))
+    audio_frames_out = torch.fft.irfft(audio_ir_fft, n=audio_frames.shape[-1])
 
     #audio_frames_out = torch.ones_like(audio_frames_out)
 
@@ -1111,6 +1107,10 @@ def lsf_to_filter_coeff(line_spectral_frequencies: torch.Tensor):
             Filter coefficients a_k for k = 1,...,p where p is the filter order. The
             coefficient a_0 = 1 is not included.
     """
+
+    # MPS does not support float64, so compute on the CPU and move the result back
+    if line_spectral_frequencies.device.type == 'mps':
+        return lsf_to_filter_coeff(line_spectral_frequencies.cpu()).to(line_spectral_frequencies.device)
 
     batch_size, n_frames, filter_order = line_spectral_frequencies.shape
     device = line_spectral_frequencies.device

@@ -17,46 +17,50 @@ Please cite the paper, if you use parts of the code in your work.
 
 ## Requirements
 
-The following packages are required:
+Python 3.12 or newer. Dependencies are declared in `pyproject.toml` and pinned in `uv.lock`.
+Install [uv](https://docs.astral.sh/uv/), then from the repository root:
 
-    pytorch=1.6.0
-    matplotlib=3.3.1
-    python-sounddevice=0.4.0
-    scipy=1.5.2
-    torchaudio=0.6.0
-    tqdm=4.49.0
-    pysoundfile=0.10.3
-    librosa=0.8.0
-    scikit-learn=0.23.2
-    tensorboard=2.3.0
-    resampy=0.2.2
-    pandas=1.2.3
+    uv sync
 
-These packages can be found using the conda-forge and pytorch channels.
-Python 3.7 or 3.8 is recommended.
-From a new conda environment:
+This creates a `.venv` with PyTorch, torchaudio, librosa, etc. On Linux x86_64 the default PyTorch wheel includes CUDA support.
+To also install the dependencies of the robustness tests (`torchcrepe`, `mido`):
 
-    conda update conda
-    conda config --add channels conda-forge
-    conda config --set channel_priority strict
-    conda config --add channels pytorch
-    conda config --add channels pytorch
-    conda install pytorch=1.6.0
-    conda install matplotlib=3.3.1 python-sounddevice=0.4.0 scipy=1.5.2 torchaudio=0.6.0 tqdm=4.49.0 pysoundfile=0.10.3 librosa=0.8.0 scikit-learn=0.23.2 tensorboard=2.3.0 resampy=0.2.2 pandas=1.2.3
+    uv sync --extra robustness
 
-    
+Run any script with `uv run python <script>.py ...` (or activate `.venv` first).
+
+The scripts use a CUDA GPU if available, otherwise Apple Silicon (MPS), otherwise the CPU.
+
 ## Training
 
-    python train.py -c config.txt
-    
-    python train_u_nets.py -c unet_config.txt
-    
+    uv run python train.py -c config.txt
+
+    uv run python train_u_nets.py -c unet_config.txt
+
+Pass `--no-cuda` to train on the CPU even when a GPU is available.
+
 ## Evaluation
 
-    python eval.py --tag 'TAG' --f0-from-mix --test-set 'CSD'
+    uv run python eval.py --tag 'TAG' --f0-from-mix --test-set 'CSD'
 
 Note : 'TAG' is the evaluated model's name. (Example: unsupervised_2s_satb_bcbq_mf0_1)
-    
+Use `--device cpu|cuda|mps` to choose the device explicitly.
+
+## Tests
+
+    uv run python -m unittest ddsp.core_test
+
+## Notes on the dependency update
+
+The code was originally written for PyTorch 1.6 / torchaudio 0.6 / librosa 0.8 and has been ported to current versions.
+On the CPU, the ported DDSP operations (including gradients) and the evaluation metrics match the original
+environment within float32 precision, and evaluating the provided models gives the same results.
+Two intentional details keep the old behaviour:
+`frequency_impulse_response` produces impulse responses of length `2 * n_frequencies - 1` like the removed `torch.irfft`,
+and the librosa STFTs use `pad_mode='reflect'` (the default before librosa 0.10).
+`robustness_tests/groundTruthF0/crepe_all_files.py` now uses torchcrepe instead of the TensorFlow crepe tool;
+its pitch estimates differ slightly (a few cents) from the committed `crepe_centered` files, which remain the reference.
+
 ## Acknowledgment
 
 This project has received funding from the European Union's Horizon 2020 research and innovation programme under the Marie Skłodowska-Curie grant agreement No. 765068.

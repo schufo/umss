@@ -39,8 +39,9 @@ def stft(audio, frame_size=2048, overlap=0.75, center=False, pad_end=True):
         hop_length=hop_length,
         win_length=int(frame_size),
         window=window,
-        center=center)
-    return s
+        center=center,
+        return_complex=True)
+    return torch.view_as_real(s)  # [..., 2] real/imag layout, as returned by torch < 1.8
 
 def istft(stft, frame_size=2048, overlap=0.75, center=False, length=64000):
     """Differentiable istft in PyTorch, computed in batch."""
@@ -53,7 +54,7 @@ def istft(stft, frame_size=2048, overlap=0.75, center=False, length=64000):
     assert frame_size * overlap % 2.0 == 0.0
     window = torch.hann_window(int(frame_size), device=stft.device)
     s = torch.istft(
-        input=stft,
+        input=torch.view_as_complex(stft.contiguous()),
         n_fft=int(frame_size),
         hop_length=hop_length,
         win_length=int(frame_size),
@@ -84,6 +85,7 @@ def compute_mel(audio,
 
     mel = torchaudio.transforms.MelScale(n_mels=bins,
                                          sample_rate=sr,
+                                         n_stft=mag.shape[-2],
                                          f_min=lo_hz,
                                          f_max=hi_hz).to(mag.device)(mag)
     return mel
